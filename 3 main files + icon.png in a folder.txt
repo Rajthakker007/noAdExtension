@@ -1,0 +1,48 @@
+// manifest.json
+{
+  "manifest_version": 2,
+  "name": "YouTube Link Opener",
+  "version": "1.0",
+  "description": "Opens YouTube links in a custom page",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage"
+  ],
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["file:///C:/Users/lovet/Documents/Video%20to%20text/youtubeNoAD.html"],
+      "js": ["content.js"]
+    }
+  ]
+}
+
+// background.js
+chrome.browserAction.onClicked.addListener(function(tab) {
+  var currentUrl = tab.url;
+  chrome.storage.local.set({youtubeUrl: currentUrl}, function() {
+    chrome.tabs.create({
+      url: 'file:///C:/Users/lovet/Documents/Video%20to%20text/youtubeNoAD.html'
+    });
+  });
+});
+
+// content.js
+chrome.storage.local.get(['youtubeUrl'], function(result) {
+  if (result.youtubeUrl) {
+    var input = document.getElementById('youtubeUrl');
+    if (input) {
+      input.value = result.youtubeUrl;
+      var event = new Event('input', { bubbles: true });
+      input.dispatchEvent(event);
+    }
+    chrome.storage.local.remove('youtubeUrl');
+  }
+});
