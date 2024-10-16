@@ -1,0 +1,92 @@
+I apologize for the continued issue. Let's try a different approach to ensure the URL is properly inserted into the input box. We'll modify the extension to use a content script that will be injected into the page after it loads.
+
+
+
+```javascript
+// manifest.json
+{
+  "manifest_version": 2,
+  "name": "YouTube Link Opener",
+  "version": "1.0",
+  "description": "Opens YouTube links in a custom page",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage"
+  ],
+  "browser_action": {
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["file:///C:/Users/lovet/Documents/Video%20to%20text/youtubeNoAD.html"],
+      "js": ["content.js"]
+    }
+  ]
+}
+
+// background.js
+chrome.browserAction.onClicked.addListener(function(tab) {
+  var currentUrl = tab.url;
+  chrome.storage.local.set({youtubeUrl: currentUrl}, function() {
+    chrome.tabs.create({
+      url: 'file:///C:/Users/lovet/Documents/Video%20to%20text/youtubeNoAD.html'
+    });
+  });
+});
+
+// content.js
+chrome.storage.local.get(['youtubeUrl'], function(result) {
+  if (result.youtubeUrl) {
+    var input = document.getElementById('youtubeUrl');
+    if (input) {
+      input.value = result.youtubeUrl;
+      var event = new Event('input', { bubbles: true });
+      input.dispatchEvent(event);
+    }
+    chrome.storage.local.remove('youtubeUrl');
+  }
+});
+
+```
+
+Here's what changed and how to apply the fix:
+
+1. We've updated the `manifest.json` to include a content script and added the `storage` permission.
+2. The `background.js` now stores the current URL in Chrome's local storage before opening the new tab.
+3. We've added a new file, `content.js`, which will be injected into your HTML page when it loads.
+
+To apply these changes:
+
+1. Open your extension directory.
+2. Replace the contents of `manifest.json` and `background.js` with the new code from the artifact above.
+3. Create a new file named `content.js` in the same directory and add the code for it from the artifact.
+4. Save all files.
+5. Go to `chrome://extensions/` in Chrome.
+6. Find your extension and click the refresh icon (circular arrow).
+7. If the extension is disabled, re-enable it.
+
+Here's how the new approach works:
+
+1. When you click the extension icon, it saves the current tab's URL to Chrome's local storage.
+2. It then opens your custom HTML page in a new tab.
+3. The content script (`content.js`) is automatically injected into your HTML page when it loads.
+4. This script retrieves the URL from storage and sets it in the input field.
+
+To test the extension:
+
+1. Go to any YouTube video page.
+2. Click your extension icon.
+3. The new tab should open with your custom HTML page, and you should see the YouTube URL automatically populated in the input field.
+
+If you're still experiencing issues, please check the following:
+
+1. Ensure that the file path in `manifest.json` and `background.js` exactly matches the location of your HTML file.
+2. Check the Chrome Developer Console in the new tab for any error messages.
+3. Verify that the input field in your HTML file has the ID 'youtubeUrl'.
+
+If the problem persists, please provide any error messages you see in the console, and we can further troubleshoot the issue.
